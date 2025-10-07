@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep-Tech VC Interview Prep: India vs. Japan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A comparative dashboard structure was chosen to allow for direct, side-by-side analysis of the Indian and Japanese markets, which is critical for an investment associate role. The user can toggle the entire view between countries, maintaining context. A secondary tab-based navigation for deep-tech sectors allows for focused exploration without losing the primary country comparison. This non-linear, user-driven flow is more effective for interview prep than a static report, enabling the user to quickly synthesize data and identify cross-market synergies. The final sections on synergies and talking points provide actionable, synthesized takeaways. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Macroeconomic & funding data. Goal: Inform/Compare. Viz: Key stat cards (HTML/CSS). Interaction: Country toggle updates values. Justification: Provides a quick, high-level snapshot.
+        - Report Info: Sector-specific market size projections. Goal: Compare Growth. Viz: Bar Chart (Chart.js/Canvas). Interaction: Tooltips on hover; chart updates with country/sector selection. Justification: Visually represents investment potential, a key VC metric.
+        - Report Info: Qualitative trends, strengths, challenges. Goal: Organize/Inform. Viz: Styled lists with icons (HTML/Tailwind). Interaction: Toggling content visibility by sector. Justification: Presents dense textual information in a scannable, digestible format.
+        - Report Info: Indo-Japan collaboration potential. Goal: Show Relationships. Viz: Diagram built with HTML/Tailwind divs. Interaction: None. Justification: Visually synthesizes the core investment thesis of a cross-border firm.
+        - Report Info: Interview preparation questions. Goal: Inform. Viz: Accordion list (HTML/JS). Interaction: Click to expand/collapse. Justification: Provides actionable, self-test material in a clean UI.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #1a202c;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .active-country-btn {
+            background-color: #2c3e50 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .inactive-country-btn {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        .active-sector-btn {
+            background-color: #4e8a8b;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .inactive-sector-btn {
+            background-color: #ffffff;
+            color: #4e8a8b;
+            border: 1px solid #4e8a8b;
+        }
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#2c3e50] mb-2">Indo-Japan Deep-Tech Landscape</h1>
+            <p class="text-md text-gray-600 max-w-3xl mx-auto">An interactive briefing for Investment Associates on current trends in Biotech, MedTech, and more.</p>
+        </header>
+
+        <div class="flex justify-center mb-10">
+            <div class="flex rounded-lg p-1 bg-gray-200">
+                <button id="btn-india" class="px-6 py-2 text-sm font-semibold rounded-md transition-all duration-300">India</button>
+                <button id="btn-japan" class="px-6 py-2 text-sm font-semibold rounded-md transition-all duration-300">Japan</button>
+            </div>
+        </div>
+
+        <main>
+            <section id="macro-overview" class="mb-12">
+                <h2 class="text-2xl font-bold text-center mb-6 text-[#2c3e50]">Macro Overview: <span id="country-name-macro"></span></h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase">Biotech Market Size (Est.)</h3>
+                        <p id="stat-market-size" class="text-3xl font-bold text-[#4e8a8b] mt-2"></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase">Projected CAGR</h3>
+                        <p id="stat-cagr" class="text-3xl font-bold text-[#4e8a8b] mt-2"></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase">Govt. Funding Focus</h3>
+                        <p id="stat-gov-focus" class="text-lg font-semibold text-gray-700 mt-2 h-14"></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase">VC Investment Trend</h3>
+                        <p id="stat-vc-trend" class="text-lg font-semibold text-gray-700 mt-2 h-14"></p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="sector-deep-dive" class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-center mb-2 text-[#2c3e50]">Sector Deep-Dive</h2>
+                <p class="text-center text-gray-600 mb-8">This section provides a detailed analysis of key technology sectors. Use the buttons below to switch between sectors and explore the unique trends, market dynamics, and key players for the selected country.</p>
+                <div id="sector-tabs" class="flex flex-wrap justify-center gap-2 mb-8">
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-[#2c3e50]">Market Dynamics: <span id="sector-name-chart"></span></h3>
+                        <div class="chart-container">
+                            <canvas id="sectorChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-[#2c3e50]">Key Trends & Drivers</h3>
+                        <ul id="sector-trends" class="space-y-3">
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-3 text-[#2c3e50]">Strengths & Opportunities</h4>
+                        <ul id="sector-strengths" class="space-y-2 text-gray-700"></ul>
+                    </div>
+                     <div>
+                        <h4 class="text-lg font-semibold mb-3 text-[#2c3e50]">Challenges & Headwinds</h4>
+                        <ul id="sector-challenges" class="space-y-2 text-gray-700"></ul>
+                    </div>
+                </div>
+
+                 <div class="mt-10">
+                    <h4 class="text-lg font-semibold mb-3 text-[#2c3e50]">Notable Startups & Companies</h4>
+                    <div id="sector-companies" class="flex flex-wrap gap-3"></div>
+                </div>
+            </section>
+
+            <section id="synergies" class="mt-12">
+                 <h2 class="text-2xl font-bold text-center mb-6 text-[#2c3e50]">Indo-Japanese Synergies & Investment Thesis</h2>
+                 <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <p class="text-center text-gray-600 mb-8">The collaboration between India's scale and frugal innovation with Japan's advanced technology and capital presents a powerful investment thesis. A Japanese VC in India is uniquely positioned to bridge these ecosystems.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center text-center">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg text-[#4e8a8b]">India's Strengths</h3>
+                            <ul class="mt-2 text-gray-700 list-inside list-disc text-left">
+                                <li>Vast domestic market & talent</li>
+                                <li>Low-cost manufacturing & R&D</li>
+                                <li>"Frugal innovation" mindset</li>
+                                <li>Rapid digitalization</li>
+                            </ul>
+                        </div>
+                        <div class="text-4xl text-gray-400 font-thin my-4 md:my-0">&rarr; &larr;</div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg text-[#2c3e50]">Japan's Strengths</h3>
+                            <ul class="mt-2 text-gray-700 list-inside list-disc text-left">
+                                <li>Deep capital pools & patient capital</li>
+                                <li>Advanced manufacturing & robotics</li>
+                                <li>Expertise in high-precision tech</li>
+                                <li>Access to mature global markets</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-6 bg-teal-50 rounded-lg border border-teal-200">
+                        <h3 class="font-bold text-center text-lg text-teal-800">The Opportunity</h3>
+                        <p class="mt-2 text-teal-700 text-center">Invest in Indian startups and provide them with Japanese technology, capital, and mentorship for global expansion. Conversely, help Japanese companies leverage Indian talent and market access for cost-effective scaling and new product development.</p>
+                    </div>
+                 </div>
+            </section>
+
+            <section id="talking-points" class="mt-12">
+                <h2 class="text-2xl font-bold text-center mb-6 text-[#2c3e50]">Key Interview Talking Points</h2>
+                <div id="accordion-container" class="space-y-4">
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const appData = {
+                india: {
+                    macro: {
+                        marketSize: "$100B+",
+                        cagr: "12-15%",
+                        govFocus: "PLI Schemes, Bio-economy Hub",
+                        vcTrend: "Strong Growth, Seed/Series A focus"
+                    },
+                    biotech: {
+                        name: "Biotech (Non-drug discovery)",
+                        market: { current: 80, future: 200 },
+                        trends: [
+                            "<strong>Sustainable Materials:</strong> Focus on biofuels, bioplastics, and bio-pesticides driven by environmental concerns.",
+                            "<strong>Agritech Biotech:</strong> Genetically modified crops, bio-fertilizers, and animal health products for food security.",
+                            "<strong>Industrial Enzymes:</strong> Growing demand in textiles, food processing, and detergent industries.",
+                        ],
+                        strengths: ["Large pool of skilled scientists & engineers.", "Rich biodiversity as a source for novel molecules.", "Government support via BIRAC and DBT."],
+                        challenges: ["Complex regulatory pathways.", "Limited access to high-risk early-stage capital.", "Infrastructure gaps for scaling up."],
+                        companies: ["Praj Industries", "Sea6 Energy", "String Bio"]
+                    },
+                    medtech: {
+                        name: "MedTech",
+                        market: { current: 11, future: 50 },
+                        trends: [
+                            "<strong>Affordable Devices:</strong> High demand for low-cost, high-volume medical devices for domestic and emerging markets.",
+                            "<strong>Telemedicine & Remote Monitoring:</strong> Post-COVID boom in wearables and connected devices for rural healthcare.",
+                            "<strong>Point-of-Care Devices:</strong> Shift towards decentralized healthcare creating opportunities for portable diagnostic tools.",
+                        ],
+                        strengths: ["Expertise in frugal engineering.", "Large domestic market and patient pool.", "Growing number of medical device parks."],
+                        challenges: ["High import dependency (~75%) for critical components.", "Fragmented market with price sensitivity.", "Navigating diverse state-level regulations."],
+                        companies: ["Healthium Medtech", "Trivitron Healthcare", "Perfint Healthcare"]
+                    },
+                    diagnostics: {
+                        name: "Diagnostics",
+                        market: { current: 10, future: 25 },
+                        trends: [
+                            "<strong>Molecular Diagnostics:</strong> Rapid adoption of PCR, NGS for infectious diseases and oncology.",
+                            "<strong>Liquid Biopsy:</strong> Emerging tech for non-invasive cancer detection attracting significant research interest.",
+                            "<strong>AI in Imaging:</strong> AI algorithms for faster and more accurate analysis of X-rays, CT scans, and MRIs.",
+                        ],
+                        strengths: ["Strong network of diagnostic labs (Dr. Lal PathLabs, Metropolis).", "Expertise in infectious disease diagnostics.", "Cost-competitive service delivery model."],
+                        challenges: ["Quality control and standardization across smaller labs.", "Low public health spending on preventive screening.", "Data privacy concerns with health data."],
+                        companies: ["Molbio Diagnostics", "Mylab Discovery", "Redcliffe Labs"]
+                    },
+                    synbio: {
+                        name: "Synthetic Biology",
+                        market: { current: 2, future: 10 },
+                        trends: [
+                            "<strong>Engineered Microbes:</strong> Development of microbes for producing high-value chemicals, proteins, and fragrances.",
+                            "<strong>DNA/RNA Synthesis:</strong> Growing demand from academia and pharma for custom oligonucleotides.",
+                            "<strong>Cell-free Systems:</strong> Early-stage research into producing biologics without living cells, promising faster production.",
+                        ],
+                        strengths: ["Strong academic research base in life sciences.", "Growing number of incubators and bio-foundries.", "Talent pool with IT skills applicable to computational biology."],
+                        challenges: ["Nascent ecosystem with few commercial successes.", "High initial capital expenditure for labs.", "Public perception and ethical considerations."],
+                        companies: ["Zumutor Biologics", "Phyllo", "Bugworks"]
+                    },
+                    health_ai: {
+                        name: "Health AI",
+                        market: { current: 1, future: 8 },
+                        trends: [
+                            "<strong>Predictive Analytics:</strong> AI models for disease prediction, patient risk stratification, and hospital operations management.",
+                            "<strong>Drug Discovery Platforms:</strong> AI to accelerate identification of drug targets and molecule design (though non-discovery focus is on diagnostics).",
+                            "<strong>Personalized Medicine:</strong> AI analyzing genomic and clinical data to recommend tailored treatment plans.",
+                        ],
+                        strengths: ["Massive, diverse datasets from a large population.", "World-class IT and data science talent.", "Mobile-first population enabling data collection."],
+                        challenges: ["Data quality, standardization, and interoperability issues.", "Lack of clear regulatory framework for AI in healthcare.", "High cost of skilled AI/ML talent."],
+                        companies: ["Qure.ai", "Niramai", "Innovaccer"]
+                    },
+                    biomanufacturing: {
+                        name: "Biomanufacturing",
+                        market: { current: 4, future: 15 },
+                        trends: [
+                            "<strong>Vaccine Manufacturing Hub:</strong> Leveraging existing capacity (e.g., Serum Institute) for global supply.",
+                            "<strong>Biosimilars & Biologics:</strong> Significant investment in building capacity for complex monoclonal antibodies.",
+                            "<strong>Contract Development & Manufacturing (CDMO):</strong> Indian firms becoming preferred partners for global pharma.",
+                        ],
+                        strengths: ["World's largest vaccine manufacturing capacity.", "Cost-effective manufacturing at scale (CRAMS).", "FDA-approved facilities and a strong track record."],
+                        challenges: ["Dependence on imported raw materials and equipment.", "Need for continuous upskilling in new technologies (e.g., cell & gene therapy).", "Intense price competition globally."],
+                        companies: ["Serum Institute of India", "Biocon/Syngene", "Dr. Reddy's Laboratories"]
+                    }
+                },
+                japan: {
+                    macro: {
+                        marketSize: "$450B+",
+                        cagr: "5-7%",
+                        govFocus: "Regenerative Medicine, Precision Health",
+                        vcTrend: "Stable, Corporate VC-led, Later stage focus"
+                    },
+                    biotech: {
+                        name: "Biotech (Non-drug discovery)",
+                        market: { current: 300, future: 400 },
+                        trends: [
+                            "<strong>Regenerative Medicine:</strong> World leader in iPS cell technology and its application in tissue repair and cell therapy.",
+                            "<strong>Advanced Biomaterials:</strong> Development of biocompatible materials for medical implants and drug delivery systems.",
+                            "<strong>Fermentation Technology:</strong> Deep expertise in microbial fermentation for producing amino acids, enzymes, and food ingredients.",
+                        ],
+                        strengths: ["Pioneering research in stem cells (Nobel prize-winning).", "Strong government support and clear regulatory path for regenerative medicine.", "Collaboration between academia and large corporations."],
+                        challenges: ["Slower adoption of new technologies in a conservative market.", "Aging scientific workforce.", "High operational costs."],
+                        companies: ["Kyoto University (CiRA)", "Fujifilm", "Ajinomoto"]
+                    },
+                    medtech: {
+                        name: "MedTech",
+                        market: { current: 50, future: 65 },
+                        trends: [
+                            "<strong>Robotics & Automation:</strong> Surgical robots, robotic exoskeletons for rehabilitation targeting an aging population.",
+                            "<strong>High-Precision Imaging:</strong> Cutting-edge endoscopes, MRI, and CT scan technology.",
+                            "<strong>Wearable Health Monitors:</strong> Sophisticated devices for continuous monitoring of chronic diseases in the elderly.",
+                        ],
+                        strengths: ["World-class expertise in robotics, electronics, and optics.", "High healthcare spending and demand from an aging population.", "Strong IP protection and quality manufacturing."],
+                        challenges: ["Rigid and lengthy approval process for new devices.", "Risk-averse culture can slow down startup innovation.", "Fierce competition from global giants (Siemens, GE)."],
+                        companies: ["Olympus", "Terumo", "Cyberdyne"]
+                    },
+                    diagnostics: {
+                        name: "Diagnostics",
+                        market: { current: 25, future: 35 },
+                        trends: [
+                            "<strong>Companion Diagnostics:</strong> Tests developed alongside specific drugs to determine patient suitability, crucial for personalized medicine.",
+                            "<strong>Ultrasensitive Detection:</strong> Technologies for early detection of biomarkers for cancer and neurodegenerative diseases.",
+                            "<strong>Automated Lab Systems:</strong> High-throughput, fully automated systems for large-scale testing.",
+                        ],
+                        strengths: ["Excellence in precision engineering for diagnostic hardware.", "High adoption rate of advanced diagnostic tests in clinical practice.", "Strong diagnostics companies with global reach."],
+                        challenges: ["Reimbursement policies can be slow to adapt to new technologies.", "Fragmented domestic market for novel tests.", "Data silos between hospitals hinder large-scale analysis."],
+                        companies: ["Sysmex", "Fujirebio", "Hitachi High-Tech"]
+                    },
+                    synbio: {
+                        name: "Synthetic Biology",
+                        market: { current: 5, future: 12 },
+                        trends: [
+                            "<strong>Engineered Organisms for Bioproduction:</strong> Focus on creating yeast and E. coli strains to produce high-value chemicals and biofuels efficiently.",
+                            "<strong>Bio-sensors:</strong> Development of synthetic biological circuits to detect specific molecules for environmental or medical purposes.",
+                            "<strong>Spider Silk & Novel Materials:</strong> Startups like Spiber commercializing brewed protein fibers for textiles.",
+                        ],
+                        strengths: ["Long history and deep expertise in fermentation and metabolic engineering.", "Strong corporate R&D in materials science and chemicals.", "Patient capital from corporations willing to fund long-term R&D."],
+                        challenges: ["Less vibrant startup culture compared to the US.", "Regulatory uncertainty for genetically engineered products.", "Difficulty in scaling from lab to industrial production."],
+                        companies: ["Spiber Inc.", "Synplogen", "Chitose Group"]
+                    },
+                    health_ai: {
+                        name: "Health AI",
+                        market: { current: 2, future: 10 },
+                        trends: [
+                            "<strong>AI-assisted Medical Imaging:</strong> AI for detecting lesions in endoscopic images and abnormalities in CT/MRI scans.",
+                            "<strong>Carebots & Elderly Care AI:</strong> AI-powered robots and systems to assist the elderly, monitor health, and provide companionship.",
+                            "<strong>Genomic Data Analysis:</strong> AI platforms for interpreting complex genomic data for rare diseases and cancer.",
+                        ],
+                        strengths: ["High-quality, long-term clinical data available.", "Strong engineering talent in robotics and hardware.", "Government initiatives promoting data utilization in healthcare."],
+                        challenges: ["Strict personal data protection laws can be a hurdle.", "Shortage of talent with both medical and AI expertise.", "Reluctance from some medical professionals to adopt AI tools."],
+                        companies: ["Preferred Networks", "LPixel", "Exawizards"]
+                    },
+                    biomanufacturing: {
+                        name: "Biomanufacturing",
+                        market: { current: 20, future: 28 },
+                        trends: [
+                            "<strong>Cell & Gene Therapy CDMO:</strong> Major investments by large pharma and CDMOs to build state-of-the-art manufacturing facilities.",
+                            "<strong>Single-Use Systems:</strong> High adoption of disposable bioreactors and equipment for flexible and contamination-free manufacturing.",
+                            "<strong>Automation in Production:</strong> Heavy use of robotics and automation to ensure quality, consistency, and reduce human error.",
+                        ],
+                        strengths: ["Reputation for high-quality, precise manufacturing (Monozukuri).", "Strong supply chain for manufacturing equipment and materials.", "Established CDMOs with global clients."],
+                        challenges: ["High labor and operational costs.", "Conservative corporate culture can slow down adoption of new manufacturing paradigms.", "Competition from lower-cost regions like South Korea and India."],
+                        companies: ["Takara Bio", "AGC Biologics", "Nikon CeLL innovation"]
+                    }
+                }
+            };
+
+            const talkingPoints = [
+                {
+                    q: "What is the core investment thesis for a Japanese VC in India?",
+                    a: "The thesis is built on synergy. We can leverage Japanese capital, deep-tech expertise, and global networks to scale high-potential Indian startups. India offers a massive market, a skilled, cost-effective talent pool, and a 'frugal innovation' mindset. We can de-risk Indian investments with Japanese technical due diligence and open up the Japanese and other developed markets for our portfolio companies."
+                },
+                {
+                    q: "Which sector shows the most promise for Indo-Japanese collaboration?",
+                    a: "MedTech and Biomanufacturing are prime candidates. Japan's excellence in high-precision robotics and medical device manufacturing can be combined with India's strength in software development (for Health AI), frugal engineering for affordable devices, and large-scale, cost-effective biomanufacturing capacity. A joint venture could create world-class products at a competitive price point."
+                },
+                {
+                    q: "How would you assess the risk profile of Indian deep-tech startups vs. Japanese ones?",
+                    a: "Indian startups often face higher market and scaling risks due to infrastructure gaps and a price-sensitive domestic market, but they benefit from rapid growth and a large talent pool. Japanese startups face lower technology risk due to a mature ecosystem but may have higher market risk due to a conservative, slow-adopting domestic market and less aggressive global expansion strategies. Our role would be to mitigate these respective risks."
+                },
+                 {
+                    q: "Beyond capital, what value can your firm bring to an Indian startup?",
+                    a: "We provide a 'bridge to the world'. This includes technical mentorship from Japanese experts, access to Japanese corporate partners for R&D collaboration or as customers, support in navigating international regulatory landscapes like FDA or EMA, and strategic guidance for entering mature markets, which is often a key challenge for Indian startups."
+                }
+            ];
+
+            let currentCountry = 'india';
+            let currentSector = 'biotech';
+            let sectorChart;
+
+            const countryNameMacro = document.getElementById('country-name-macro');
+            const statMarketSize = document.getElementById('stat-market-size');
+            const statCagr = document.getElementById('stat-cagr');
+            const statGovFocus = document.getElementById('stat-gov-focus');
+            const statVcTrend = document.getElementById('stat-vc-trend');
+            
+            const btnIndia = document.getElementById('btn-india');
+            const btnJapan = document.getElementById('btn-japan');
+            
+            const sectorTabsContainer = document.getElementById('sector-tabs');
+            const sectorNameChart = document.getElementById('sector-name-chart');
+            const sectorTrends = document.getElementById('sector-trends');
+            const sectorStrengths = document.getElementById('sector-strengths');
+            const sectorChallenges = document.getElementById('sector-challenges');
+            const sectorCompanies = document.getElementById('sector-companies');
+
+            function createSectorButtons() {
+                const sectors = Object.keys(appData.india);
+                sectors.shift(); 
+                sectors.forEach(sectorId => {
+                    const button = document.createElement('button');
+                    button.id = `btn-sector-${sectorId}`;
+                    button.textContent = appData.india[sectorId].name;
+                    button.className = 'px-4 py-2 text-sm rounded-full transition-colors duration-300';
+                    button.dataset.sector = sectorId;
+                    sectorTabsContainer.appendChild(button);
+                });
+            }
+
+            function updateUI() {
+                updateMacroOverview();
+                updateSectorContent();
+                updateCountryButtons();
+                updateSectorButtons();
+            }
+
+            function updateCountryButtons() {
+                if (currentCountry === 'india') {
+                    btnIndia.className = btnIndia.className.replace('inactive-country-btn', '') + ' active-country-btn';
+                    btnJapan.className = btnJapan.className.replace('active-country-btn', '') + ' inactive-country-btn';
+                } else {
+                    btnJapan.className = btnJapan.className.replace('inactive-country-btn', '') + ' active-country-btn';
+                    btnIndia.className = btnIndia.className.replace('active-country-btn', '') + ' inactive-country-btn';
+                }
+            }
+
+            function updateSectorButtons() {
+                const buttons = sectorTabsContainer.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    if (btn.dataset.sector === currentSector) {
+                        btn.className = btn.className.replace('inactive-sector-btn', '') + ' active-sector-btn';
+                    } else {
+                        btn.className = btn.className.replace('active-sector-btn', '') + ' inactive-sector-btn';
+                    }
+                });
+            }
+
+            function updateMacroOverview() {
+                const data = appData[currentCountry].macro;
+                countryNameMacro.textContent = currentCountry.charAt(0).toUpperCase() + currentCountry.slice(1);
+                statMarketSize.textContent = data.marketSize;
+                statCagr.textContent = data.cagr;
+                statGovFocus.textContent = data.govFocus;
+                statVcTrend.textContent = data.vcTrend;
+            }
+
+            function updateSectorContent() {
+                const data = appData[currentCountry][currentSector];
+                sectorNameChart.textContent = data.name;
+                
+                sectorTrends.innerHTML = data.trends.map(item => `<li class="flex items-start"><span class="text-teal-500 mr-3 mt-1">&#10003;</span><span>${item}</span></li>`).join('');
+                sectorStrengths.innerHTML = data.strengths.map(item => `<li class="flex items-start"><span class="text-green-500 mr-2">&#43;</span><span>${item}</span></li>`).join('');
+                sectorChallenges.innerHTML = data.challenges.map(item => `<li class="flex items-start"><span class="text-red-500 mr-2">&#45;</span><span>${item}</span></li>`).join('');
+                
+                sectorCompanies.innerHTML = data.companies.map(company => `<span class="bg-gray-200 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-1 rounded-full">${company}</span>`).join('');
+                
+                updateChart(data.name, data.market);
+            }
+            
+            function createChart() {
+                const ctx = document.getElementById('sectorChart').getContext('2d');
+                sectorChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Current Market ($B)', 'Projected Market ($B)'],
+                        datasets: [{
+                            label: 'Market Size in USD Billions',
+                            data: [0, 0],
+                            backgroundColor: ['rgba(78, 138, 139, 0.6)', 'rgba(44, 62, 80, 0.6)'],
+                            borderColor: ['#4e8a8b', '#2c3e50'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'USD Billions' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateChart(name, marketData) {
+                if (!sectorChart) {
+                    createChart();
+                }
+                sectorChart.data.datasets[0].data = [marketData.current, marketData.future];
+                sectorChart.update();
+            }
+
+            function buildAccordion() {
+                const container = document.getElementById('accordion-container');
+                talkingPoints.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white rounded-lg shadow-sm border border-gray-200';
+                    div.innerHTML = `
+                        <div class="accordion-header flex justify-between items-center p-4">
+                            <h3 class="font-semibold text-gray-800">${item.q}</h3>
+                            <span class="transform transition-transform duration-300">&#9662;</span>
+                        </div>
+                        <div class="accordion-content px-4 pb-0">
+                            <p class="text-gray-600 mb-4">${item.a}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            function attachEventListeners() {
+                btnIndia.addEventListener('click', () => {
+                    currentCountry = 'india';
+                    updateUI();
+                });
+                btnJapan.addEventListener('click', () => {
+                    currentCountry = 'japan';
+                    updateUI();
+                });
+                sectorTabsContainer.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON') {
+                        currentSector = e.target.dataset.sector;
+                        updateUI();
+                    }
+                });
+                document.getElementById('accordion-container').addEventListener('click', (e) => {
+                    const header = e.target.closest('.accordion-header');
+                    if (header) {
+                        const content = header.nextElementSibling;
+                        const icon = header.querySelector('span');
+                        if (content.style.maxHeight) {
+                            content.style.maxHeight = null;
+                            icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
+                             document.querySelectorAll('.accordion-header span').forEach(el => el.style.transform = 'rotate(0deg)');
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            icon.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                });
+            }
+
+            function init() {
+                createSectorButtons();
+                buildAccordion();
+                attachEventListeners();
+                updateUI();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
